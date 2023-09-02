@@ -182,6 +182,38 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment
       - revert-migrations
+  
+  configure-infrastructure:
+    <<: *ansible_image
+    steps:
+      - checkout 
+      - add_ssh_keys:
+          fingerprints: ["74:bd:76:49:ec:ae:5e:44:75:cd:61:4c:a5:eb:49:9c"]
+      - attach workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add ansible gzip openssh-client
+            
+      - run:
+          name: Configure server
+          command: |
+           echo ENVIRONMENT=production > backend/.env
+           echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+           echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+           echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+           echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+           echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+           echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+           echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+           echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+           echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+           cat backend/.env
+           cd .circleci/ansible
+           ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment
+      - revert-migrations
 
       
 workflows:
