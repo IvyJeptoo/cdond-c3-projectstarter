@@ -130,6 +130,60 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix
             npm update path-parse --depth 3
+
+  deploy-infrastructure:
+    <<: *aws_image
+    steps:
+      - checkout
+      - run:
+          name: Ensure that the back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+              exit_code=$?
+              if [[ $exit_code == 0  ||  $exit_code == 255 ]]; 
+                then
+                    exit 0
+                else
+                    exit 1
+                fi
+      - run:
+          name: Ensure that the front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+              exit_code=$?
+              if [[ $exit_code == 0  ||  $exit_code == 255 ]]; 
+                then
+                    exit 0
+                else
+                    exit 1
+                fi
+      - run:
+          name: install tar & gzip utility
+          command: yum install -y tar gzip
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            cd .circleci/ansible
+            aws ec2 describe-instances \
+            --filters Name=tag:Name,Values="backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query  'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text >> ~/project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - destroy-environment
+      - revert-migrations
+
+      
 workflows:
   default:
     jobs:
