@@ -190,6 +190,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["74:bd:76:49:ec:ae:5e:44:75:cd:61:4c:a5:eb:49:9c"]
       - attach workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -276,6 +277,36 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+      - revert-migrations
+
+      
+  deploy-backend:
+    <<: *ansible_image
+    steps:
+      - checkout
+      - add_ssh_keys:
+            fingerprints: ["74:bd:76:49:ec:ae:5e:44:75:cd:61:4c:a5:eb:49:9c"]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-deps]
+      - run:
+            name: Install Dependencies
+            command: |
+              apk add --update --no-cache tar gzip nodejs npm aws-cli curl ansible
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
 
