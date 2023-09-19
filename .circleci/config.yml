@@ -120,6 +120,46 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build--v1
 
+  test-frontend:
+    docker:
+      # Docker image here
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout      
+      # Restore from cache
+      - restore_cache:
+          keys: [frontend-build--v1]
+      # Your job code here
+      - run:
+          name: Test front-end
+          working_directory: frontend
+          command: |
+            npm install
+            # Test suite was failing because of: Cannot find module 'oauth-sign'
+            npm install oauth-sign
+            npm run-script build
+            npm run-script test    
+      
+  test-backend:
+    docker:
+      # Docker image here
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout        
+      # Restore from cache
+      - restore_cache:
+          keys: [backend-build--v1]      
+      # Your job code here
+      - run:
+          name: Test backend-end
+          working_directory: backend
+          command: |
+            npm install
+            npm run-script build
+            npm run-script test 
+
 
       
 workflows:
@@ -127,6 +167,10 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
      
       
             
