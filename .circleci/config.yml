@@ -421,7 +421,7 @@ workflows:
           filters:
             branches:
               # only: [circleci-project-setup]
-              only: [master]
+              only: [development]
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-frontend:
