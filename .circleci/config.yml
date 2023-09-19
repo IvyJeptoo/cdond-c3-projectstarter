@@ -402,6 +402,105 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment
       - revert-migrations
+
+  smoke-test:
+    docker:
+      # Lightweight Docker image
+      - image: amazon/aws-cli
+      # - image: circleci/node:13.8.0
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            curl -sL https://rpm.nodesource.com/setup_14.x | bash -            
+            yum -y install tar gzip git curl nodejs
+      # Checkout code from git
+      - checkout            
+      - run:
+          name: Frontend smoke test.
+          command: |
+            # your code here
+            FRONTEND_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
+            echo "---FRONTEND_URL---"
+            echo "${FRONTEND_URL}"
+            echo "---FRONTEND_URL---"
+            if curl -s $FRONTEND_URL | grep "Welcome"
+            then
+              echo "Frontend: up and running!!!"
+              exit 0
+            else
+              echo "Frontend: it seems it is not running..."
+              exit 1
+            fi            
+      - attach_workspace:
+          # Here we have inventory.txt
+          at: ~/
+      - run:
+          name: Get backend url
+          command: |
+            # your code here
+            BACKEND_IP=$(grep -v "web" .circleci/ansible/inventory.txt)
+            BACKEND_STATUS_URL="http://${BACKEND_IP}:3030/api/status"
+            echo $BACKEND_STATUS_URL > ~/backend-url.txt
+            echo "---BACKEND_STATUS_URL---"
+            echo "${BACKEND_STATUS_URL}"
+            echo "---BACKEND_STATUS_URL---"
+      - run:
+          name: Backend smoke test.
+          command: |
+            # your code here
+            BACKEND_STATUS_URL=$(cat ~/backend-url.txt)
+            if curl -s $BACKEND_STATUS_URL | grep "ok"
+            then
+              echo "Backend: up and running!!!"
+              exit 0
+            else
+              echo "Backend: it seems it is not running..."
+              exit 1
+            fi
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment
+      - revert-migrations  
+
+  cloudfront-update:
+    docker:
+      # Docker image here that supports AWS CLI
+      # - image: amazon/aws-cli
+      - image: circleci/node:13.8.0
+    steps:
+      - aws-cli/setup    
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+            echo "All dependencies already installed..."
+      - run:
+          name: Save old workflow ID
+          command: |
+            aws cloudformation \
+              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output text > ~/old_workflow_id.txt
+            echo "---OLD_WORKFLOW_ID---"  
+            cat ~/old_workflow_id.txt
+            echo "---OLD_WORKFLOW_ID---"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - old_workflow_id.txt      
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            # your code here
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --stack-name InitialStack \
+              --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7} \
+              --tags "project=udapeople"
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment
+      - revert-migrations
       
 workflows:
   default:
@@ -430,6 +529,10 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
 
       
      
