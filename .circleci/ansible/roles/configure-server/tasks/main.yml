@@ -1,34 +1,30 @@
 ---
-- name: "update apt packages"
-  become: yes
+- name: "update apt packages."
+  become: true
   apt:
     update_cache: yes
 
 - name: "upgrade packages"
-  become: yes
+  become: true
   apt:
     upgrade: yes
 
 - name: remove dependencies that are no longer required
-  become: yes
+  become: true
   apt:
     autoremove: yes
-
+    
 - name: "install dependencies."
-  become: yes
+  become: true
   apt:
     name: ["nodejs", "npm"]
+    state: latest
     update_cache: yes
 
 - name: "install pm2"
-  become: yes
+  become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
-
-- name: "ensure the app runs at startup"
-  shell: test -e /etc/systemd/system/pm2-ubuntu.service || pm2 startup -u ubuntu
-  become: yes
-  changed_when: false
