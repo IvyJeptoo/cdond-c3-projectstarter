@@ -270,7 +270,7 @@ jobs:
           name: Install dependencies
           command: |
             # Your code here
-            apk add --update tar gzip aws-cli ansible   
+            sudo apt -yq install python3 ansible   
       - setup-backend-environment-variables
       - run:
           name: Configure server
