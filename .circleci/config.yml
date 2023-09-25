@@ -21,7 +21,10 @@ commands:
       - run:
           name: Install Ansible
           command: |
-            python3 -m pip install --user ansible
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
   
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -64,7 +67,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/TVK4hrWfDKf1pxuUErm4bB/migration_<< parameters.Workflow_ID >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
 
             # Logic for reverting the database state
             if (( $SUCCESS == 1 ));
@@ -210,6 +213,7 @@ jobs:
      
       - checkout
       - install_awscli
+      - install_ansible
       - run:
           name: Ensure back-end infrastructure exists
           working_directory: .circleci/files
