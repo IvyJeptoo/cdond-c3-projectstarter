@@ -221,15 +221,11 @@ jobs:
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: amazon/aws-cli
+      - image: cimg/python:3.10
     steps:
-      - run:
-          command: |
-            curl -sL https://rpm.nodesource.com/setup_14.x | bash -            
-            yum -y install tar gzip git nodejs
-            # amazon-linux-extras install ansible2 -y
-      # Checkout code from git
+     
       - checkout
+      - install_awscli
       - run:
           name: Ensure back-end infrastructure exists
           working_directory: .circleci/files
