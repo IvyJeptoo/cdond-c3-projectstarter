@@ -57,15 +57,15 @@ commands:
             # Your code here
             export TERM=ansi #Fixed: WARNING: terminal is not fully functional
             # Delete objects in S3 bucket
-            aws s3 rm "s3://udapeople-<<parameters.ID>>" --recursive
+            aws s3 rm "s3://udapeople-<<parameters.Workflow_ID>>" --recursive
 
             # Delete frontend stack
             aws cloudformation delete-stack --stack-name \
-              "stack-frontend-<<parameters.ID>>"  
+              "stack-frontend-<<parameters.Workflow_ID>>"  
 
             # Delete backend stack
             aws cloudformation delete-stack --stack-name \
-              "stack-backend-<<parameters.ID>>" 
+              "stack-backend-<<parameters.Workflow_ID>>" 
           
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
