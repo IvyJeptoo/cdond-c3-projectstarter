@@ -25,12 +25,27 @@ commands:
             sudo apt install software-properties-common -y
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible -y
+
+  
+  install_nodejs:
+    description: Install Node.js 13.8.0
+    steps:
+      - run:
+          name: Install Node.js 13.8.0
+          command: |
+            # Install Node.js LTS version as our base Node.js version
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+            sudo apt install -y nodejs
+
+            # Use n version manager to use Node.js v13.8.0
+            sudo npm install --global n
+            sudo n 13.8.0
   
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       # Add parameter here
-      ID:
+      Workflow_ID:
         description: The ID used to create bucket and stacks
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -56,7 +71,7 @@ commands:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
       # Add parameter here
-      ID:
+      Workflow_ID:
         description: The ID used to create bucket and stacks
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}  
@@ -547,7 +562,7 @@ workflows:
           filters:
             branches:
               # only: [circleci-project-setup]
-              only: [development]
+              only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
