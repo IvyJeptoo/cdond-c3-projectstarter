@@ -95,9 +95,6 @@ commands:
             echo "TYPEORM_DATABASE=$TYPEORM_DATABASE" >> .env
 
 
-
-
-
 jobs:
   build-frontend:
     docker:
@@ -161,12 +158,9 @@ jobs:
       # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout        
-      # Restore from cache
       - restore_cache:
           keys: [backend-build--v1]      
-      # Your job code here
       - run:
           name: Test backend-end
           working_directory: backend
@@ -177,15 +171,11 @@ jobs:
 
   scan-frontend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout        
-      # Restore from cache
       - restore_cache:
           keys: [frontend-build--v1]      
-      # Your job code here
       - run:
           name: Scan front-end
           working_directory: frontend
