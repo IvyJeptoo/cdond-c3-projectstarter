@@ -562,7 +562,7 @@ workflows:
           filters:
             branches:
               # only: [circleci-project-setup]
-              only: [master]
+              only: [development]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
