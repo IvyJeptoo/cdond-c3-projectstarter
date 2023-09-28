@@ -120,7 +120,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build--v1]
+          keys: [frontend-build]
       - run:
           name: Build front-end
           working_directory: frontend
@@ -130,7 +130,7 @@ jobs:
             npm run-script build
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build--v1
+          key: frontend-build
 
   build-backend:
     docker:
@@ -138,7 +138,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build--v1]
+          keys: [backend-build]
       - run:
           name: Back-end build
           working_directory: backend
@@ -148,7 +148,7 @@ jobs:
              npm run-script build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build--v1
+          key: backend-build
 
   test-frontend:
     docker:
@@ -159,7 +159,7 @@ jobs:
       - checkout      
       # Restore from cache
       - restore_cache:
-          keys: [frontend-build--v1]
+          keys: [frontend-build]
       # Your job code here
       - run:
           name: Test front-end
@@ -178,7 +178,7 @@ jobs:
     steps:
       - checkout        
       - restore_cache:
-          keys: [backend-build--v1]      
+          keys: [backend-build]      
       - run:
           name: Test backend-end
           working_directory: backend
@@ -193,13 +193,16 @@ jobs:
     steps:
       - checkout        
       - restore_cache:
-          keys: [frontend-build--v1]      
+          keys: [frontend-build]      
       - run:
           name: Scan front-end
           working_directory: frontend
           command: |
             npm install
+            npm install
             npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical
 
 
   scan-backend:
@@ -218,12 +221,15 @@ jobs:
           working_directory: backend
           command: |
             npm install
+            npm install
             npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical
 
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: cimg/python:3.10
+      - image: amazon/aws-cli
     steps:
      
       - checkout
@@ -276,14 +282,17 @@ jobs:
      
       # Checkout code from git
       - checkout
-      - install_ansible
-      - install_awscli
+      
       # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["9b:01:f0:ad:d7:c6:41:10:20:9c:79:24:de:89:25:13"] 
       # attach workspace
       - attach_workspace:
-          at: ~/      
+          at: ~/  
+      - run:
+          name: install dependancies
+          command: |
+            apk add --update tar gzip aws-cli ansible  
       
       - run:
           name: Configure server
@@ -302,10 +311,10 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - install_awscli
-      - install_nodejs
+      # - install_awscli
+      # - install_nodejs
       - restore_cache:
-          keys: [backend-deps]  
+          keys: [backend-build]  
       - run:
           name: Run migrations
           command: |
@@ -329,46 +338,39 @@ jobs:
 
   deploy-frontend:
     docker:
-      # Docker image here that supports AWS CLI
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
     steps:
-      - aws-cli/setup
-      # Checkout code from git
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Install dependencies
           command: |
-            # your code here
-            echo "All dependencies already installed!"
-      - attach_workspace:
-          # Here we have inventory.txt
-          at: ~/
+            apk add tar 
+            apk add nodejs
+            apk add npm
+            apk add curl
+            pip install awscli --upgrade
       - run:
           name: Get backend url
           command: |
-            # your code here
-            BACKEND_IP=$(grep -v "web" .circleci/ansible/inventory.txt)
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
-            echo "---API_URL---"
+            echo "API_URL = ${API_URL}"
+            echo "API_URL = ${API_URL}" >> frontend/.env
             cat frontend/.env
-            echo "---API_URL---"
-      - restore_cache:
-          keys: [frontend-build--v1]
-      - run:
-          name: Build frontend one last time
-          working_directory: frontend 
-          command: |
-            npm install
-            npm run build
       - run:
           name: Deploy frontend objects
-          working_directory: frontend
           command: |
-            # your code here
-            aws s3 sync dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --delete
-      # Here's where you will add some code to rollback on failure
-      - destroy-environment
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment 
       - revert-migrations 
 
   deploy-backend:
@@ -391,7 +393,7 @@ jobs:
             # your code here
             sudo apt -yq install python3 ansible
       - restore_cache:
-          keys: [backend-build--v1]
+          keys: [backend-build]
       - setup-backend-environment-variables      
       - run:
           name: Get a fresh backend build
