@@ -12,7 +12,7 @@
 - name: "install nodejs"
   become: true
   apt:
-    name: nodejs=13.8.0
+    name: nodejs=14.18.1
     update_cache: yes
 
 - name: "install dependencies."
