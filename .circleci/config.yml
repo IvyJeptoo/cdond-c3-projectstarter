@@ -229,12 +229,11 @@ jobs:
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: circleci/node:13.8.0 
+      - image: cimg/python:3.10
     steps:
      
       - checkout
       - install_awscli
-      - install_ansible
       - run:
           name: Ensure back-end infrastructure exists
           working_directory: .circleci/files
