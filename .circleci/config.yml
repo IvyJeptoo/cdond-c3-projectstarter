@@ -372,12 +372,12 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: cimg/python:3.10
+      - image: circleci/node:13.8.0
     steps:
       - checkout
-      - install_ansible
       - install_awscli
-      - install_nodejs
+      - install_ansible
+           
 
       - restore_cache:
           keys: [backend-build]
