@@ -321,7 +321,7 @@ jobs:
             then
               curl https://kvdb.io/TVK4hrWfDKf1pxuUErm4bB/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             else
-              echo "No migrations are pending" 
+              echo "No migrations is are pending" 
             fi
      # Here's where you will add some code to rollback on failure
       - destroy-environment
