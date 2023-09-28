@@ -281,6 +281,8 @@ jobs:
      
       # Checkout code from git
       - checkout
+      - install_awscli
+      - install_ansible
       
       # Add ssh keys with fingerprint
       - add_ssh_keys:
@@ -288,11 +290,7 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/  
-      - run:
-          name: install dependancies
-          command: |
-            apk add --update tar gzip aws-cli ansible  
-      
+            
       - run:
           name: Configure server
           command: |
@@ -568,8 +566,8 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
       # - smoke-test:
