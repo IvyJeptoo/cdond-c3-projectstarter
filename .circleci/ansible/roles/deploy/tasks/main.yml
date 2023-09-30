@@ -10,11 +10,10 @@
     upgrade: yes
 
 
-
 - name: "install dependencies."
   become: true
   apt:
-    name: ['nodejs', 'npm']
+    name: ["tar"]
     state: latest
     update_cache: yes
   
@@ -58,6 +57,7 @@
     TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
     TYPEORM_MIGRATIONS: "{{ lookup('env', 'TYPEORM_MIGRATIONS')}}"
     TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
+
   shell: |
     cd /home/ubuntu/backend
     pm2 stop default
