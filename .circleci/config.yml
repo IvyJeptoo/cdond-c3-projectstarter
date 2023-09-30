@@ -369,7 +369,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.11-rc-alpine
     steps:
       - checkout  
       - install_awscli
@@ -384,19 +384,35 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            # your code here
+            apk update
+            apk add --update ansible
+            apk add --no-cache tar npm gzip curl gcompat
+            apk add --no-cache python3 py3-pip
+            pip3 install --upgrade pip
+            pip3 install awscli
+            rm -rf /var/cache/apk/*
+            echo "Verify aws cli version"
+            aws --version
+      - run:
+          name: Build backend
+          command: |
             cd backend
             npm i
             npm run build
-            cd ..
-            ## zip directory
+      - run:
+          name: Create backend artifact
+          command: |
+            tar czf backend-artifact.tar.gz backend
+      - run:
+          name: Deploy backend
+          command: |
+            cd ~/project/.circleci/ansible
             pwd
-            tar -C backend -czvf artifact.tar.gz .
-            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
-            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
-            cd .circleci/ansible
-            echo "Contents  of the inventory.txt file is -------"
-            cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml -vvv
+            echo "Contents of the inventory.txt file is:"
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+            
 
       
       - destroy-environment
