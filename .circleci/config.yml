@@ -336,7 +336,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [backend-build]
       - run:
           name: Install dependencies
           command: |
@@ -369,7 +369,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: cimg/base:stable
+      - image: python:3.7-alpine3.11
     steps:
       - checkout  
       - install_awscli
