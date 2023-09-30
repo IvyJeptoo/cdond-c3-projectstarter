@@ -371,8 +371,7 @@ jobs:
     docker:
       - image: python:3.11-rc-alpine
     steps:
-      - checkout  
-              
+      - checkout               
       
       - add_ssh_keys:
           fingerprints: ["9b:01:f0:ad:d7:c6:41:10:20:9c:79:24:de:89:25:13"] 
