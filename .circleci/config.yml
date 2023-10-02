@@ -385,7 +385,7 @@ jobs:
             # your code here
             apk update
             apk upgrade
-            apk unzip
+            apk add unzip
             apk add curl
             apk add --update ansible
             apk add --update nodejs npm
