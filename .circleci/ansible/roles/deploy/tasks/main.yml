@@ -5,20 +5,26 @@
     state: directory
     mode: 0755
 
-- name: Extract 'artifact.tar.gz' into '/home/ubuntu/backend'
-  ansible.builtin.unarchive:
-    src: ~/project/artifact.tar.gz
-    dest: /home/ubuntu/backend
+- name: "Move backend files to remote server."
+  become: true
+  copy:
+    src: /root/project/backend
+    dest: /home/ubuntu
 
-- name: 'wait 600 seconds for target connection to become reachable/usable.'
-  wait_for_connection:
-    timeout: 600
+- name: "Install dependencies"
+  shell: |
+    cd /home/ubuntu/backend   
+    ls -la 
+    npm install
 
-- name: Run server
+- name: "build package"
   become: true
   shell: |
     cd /home/ubuntu/backend
-    npm install
-    npm run build   
-    pm2 stop default
-    pm2 start npm --name "backend" -- start
+    npm run build
+- name: "run server"
+  become: true
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start npm -- run "start:dev"
+    pm2 ls
