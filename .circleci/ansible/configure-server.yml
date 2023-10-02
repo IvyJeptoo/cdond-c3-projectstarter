@@ -17,6 +17,21 @@
       wait_for_connection:
         timeout: 600
 
+    - name: 'install nodejs'
+      become: yes
+      apt:
+        update_cache: yes
+        name: ['nodejs', 'npm']
+        state: latest
+
+    - name: 'install pm2'
+      become: yes
+      npm:
+        name: pm2
+        global: yes
+        production: yes
+        state: present
+
     - name: "install python for Ansible."
       become: true
       apt:
