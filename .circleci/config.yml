@@ -332,19 +332,18 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - restore_cache:
-          keys: [backend-build]
+      
       - run:
           name: Install dependencies
           command: |
-            apk add tar 
-            apk add nodejs
-            apk add npm
-            apk add curl
-            pip install awscli --upgrade
+            # install tar utility
+            yum install -y tar gzip
+            # install nodejs on aws linux instance 
+            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
+            yum -y install nodejs
       - run:
           name: Get backend url
           command: |
@@ -354,8 +353,12 @@ jobs:
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            echo "API_URL = ${API_URL}" >> frontend/.env
+            echo "API_URL = ${API_URL}:3030" >> frontend/.env
             cat frontend/.env
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/frontend/.env
       - run:
           name: Deploy frontend objects
           command: |
