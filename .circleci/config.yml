@@ -395,6 +395,10 @@ jobs:
             /usr/local/bin/python -m pip install --upgrade pip
             pip install awscli
       - run:
+          name: Install OpenSSH
+          command: |
+            apk add openssh-client
+      - run:
           name: deploy backend
           command: |
             cd backend
