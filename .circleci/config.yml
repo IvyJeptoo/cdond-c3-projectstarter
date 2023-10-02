@@ -337,7 +337,7 @@ jobs:
       - checkout
       
       - run:
-          name: Install dependencies
+          name: Install all dependencies
           command: |
             apk add tar 
             apk add nodejs
