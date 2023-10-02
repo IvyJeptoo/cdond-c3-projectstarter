@@ -14,7 +14,6 @@
 - name: "Install dependencies"
   shell: |
     cd /home/ubuntu/backend   
-    chmod -R u+w /home/ubuntu/backend
     ls -la 
     npm install
 
