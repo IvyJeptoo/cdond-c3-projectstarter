@@ -1,5 +1,5 @@
 ---
-- name: Create folder for extracted files
+- name: "Create folder for extracted files"
   file:
     path: /home/ubuntu/backend
     state: directory
