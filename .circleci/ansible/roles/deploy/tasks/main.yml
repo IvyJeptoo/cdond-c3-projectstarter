@@ -13,9 +13,9 @@
 
 - name: "Install needed dependencies"
   shell: |
+    su ubuntu
     cd /home/ubuntu/backend   
-    ls -la 
-    sudo npm install
+    npm install
 
 - name: "build package"
   become: true
