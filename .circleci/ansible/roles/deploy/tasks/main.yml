@@ -11,7 +11,7 @@
     src: /root/project/backend
     dest: /home/ubuntu
 
-- name: "Install dependencies"
+- name: "Install needed dependencies"
   shell: |
     cd /home/ubuntu/backend   
     ls -la 
