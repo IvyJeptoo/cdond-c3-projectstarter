@@ -5,7 +5,7 @@
     upgrade: yes
     update_cache: yes
 
-- name: remove unneeded dependancies
+- name: remove unused dependancies
   become: true
   apt:
     autoremove: yes
