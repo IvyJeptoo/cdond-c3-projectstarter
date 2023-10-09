@@ -449,7 +449,7 @@ jobs:
             echo "------------------------------------"
             echo BACKEND_URL: ${API_URL}/api/status
             echo "------------------------------------"
-            if curl -v --retry 5 --retry-max-time 120 "${API_URL}/api/status" | grep "ok"
+            if curl "${API_URL}/api/status" | grep "ok"
             then
               echo "Backend Smoke Test Success"
               return 0
