@@ -5,26 +5,20 @@
     state: directory
     mode: 0755
 
-- name: "Move backend files to remote server."
-  become: true
-  copy:
-    src: /root/project/backend
-    dest: /home/ubuntu
+- name: Extract 'artifact.tar.gz' into '/home/ubuntu/backend'
+  ansible.builtin.unarchive:
+    src: ~/project/artifact.tar.gz
+    dest: /home/ubuntu/backend
 
-- name: "Install needed dependencies"
+- name: 'wait 60 seconds for target connection to become reachable/usable.'
+  wait_for_connection:
+    timeout: 60
+
+- name: Run server
+  become: true
   shell: |
-    su ubuntu
-    cd /home/ubuntu/backend   
+    cd /home/ubuntu/backend
     npm install
-
-- name: "build package"
-  become: true
-  shell: |
-    cd /home/ubuntu/backend
-    npm run build
-- name: "run server"
-  become: true
-  shell: |
-    cd /home/ubuntu/backend
-    pm2 start npm -- run "start:dev"
-    pm2 ls
+    npm run build   
+    pm2 stop default
+    pm2 start npm --name "backend" -- start
