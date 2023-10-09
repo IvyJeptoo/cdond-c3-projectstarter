@@ -206,11 +206,11 @@ jobs:
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
-      - image: cimg/python:3.10
+      - image: amazon/aws-cli
     steps:
      
       - checkout
-      - install_awscli
+      - run: yum install -y tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           working_directory: .circleci/files
@@ -247,7 +247,6 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
       - destroy-environment
-      - revert-migrations 
 
   configure-infrastructure:
     docker:
