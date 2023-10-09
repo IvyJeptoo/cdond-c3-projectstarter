@@ -448,7 +448,7 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"            
             if curl "${API_URL}/api/status" | grep "ok"
             then
-              echo "Backend Smoke Test Success"
+              echo "Backend Smoke Test Successful"
               return 0
             else
               echo "Backend Smoke Test Failed"
