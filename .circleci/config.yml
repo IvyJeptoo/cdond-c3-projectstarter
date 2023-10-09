@@ -467,10 +467,10 @@ jobs:
             if curl -s $FRONTEND_URL | grep "Welcome"
             then
               echo "Frontend: up and running!!!"
-              exit 1
+              return 1
             else
               echo "Frontend: smoke test failed..."
-              exit 1
+              return 1
             fi           
      
          
