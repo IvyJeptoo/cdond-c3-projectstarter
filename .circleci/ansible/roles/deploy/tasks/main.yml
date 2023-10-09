@@ -25,22 +25,11 @@
     state: latest
     production: yes
 
-- name: create backend directory on EC2
-  file:
-    path: /home/ubuntu/backend
-    state: directory 
-
-- name: copy files to backend
-  copy: 
-    src: ~/project/artifact.tar.gz
-    dest: /home/ubuntu/backend/artifact.tar.gz
-
-
-- name: unzip backend directory
-  shell: |
-    cd /home/ubuntu/backend
-    tar xvzf artifact.tar.gz -C .
-    ls -la
+- name: extract artifact
+  become: true
+  unarchive:
+    src: files/artifact.tar.gz
+    dest: .
 
 - name: start app
   become: true
