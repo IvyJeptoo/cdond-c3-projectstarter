@@ -397,7 +397,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.7-alpine3.18
     steps:
       - checkout         
       
@@ -406,41 +406,25 @@ jobs:
                  
       - attach_workspace:
           at: ~/
-      - run: cat .circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
-            # your code here
-            apk update
-            apk upgrade
-            apk add unzip
-            apk add curl
-            apk add --update ansible
-            apk add --update nodejs npm
-            /usr/local/bin/python -m pip install --upgrade pip
-            pip install awscli
-      - run:
-          name: Install OpenSSH
-          command: |
-            apk add openssh-client
+            apk add --update tar gzip aws-cli ansible nodejs npm curl
+      
       - run:
           name: deploy backend
           no_output_timeout: 25m
           command: |
-            echo ENVIROMENT=development > "backend/.env"
-            echo TYPEORM_CONNECTION=postgres >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/*/*/*.entity.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czf artifact.tar.gz .
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
-          environment:
-            ANSIBLE_HOST_KEY_CHECKING: false
+            echo "Contents of the inventory.txt file is ------$(cat inventory.txt)"
+            ansible-playbook -i inventory.txt deploy-backend.yml -vvv
       
       - destroy-environment
       - revert-migrations
