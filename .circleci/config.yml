@@ -226,7 +226,7 @@ jobs:
           working_directory: .circleci/files
           command: |
             echo "Deploying frontend..."
-             aws cloudformation deploy \
+            aws cloudformation deploy \
                --template-file frontend.yml \
                --stack-name "stack-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -329,10 +329,7 @@ jobs:
             echo "API_URL = ${API_URL}"
             echo "API_URL = ${API_URL}:3030" >> frontend/.env
             cat frontend/.env
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/frontend/.env
+      
       - run:
           name: Deploy frontend objects
           command: |
