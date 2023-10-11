@@ -255,7 +255,7 @@ jobs:
       - checkout            
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["9b:01:f0:ad:d7:c6:41:10:20:9c:79:24:de:89:25:13"] 
+          fingerprints: ["c8:c2:cb:51:63:78:db:28:a1:d7:19:90:29:73:cf:2f"] 
       # attach workspace
       - attach_workspace:
           at: ~/  
@@ -348,7 +348,7 @@ jobs:
       - checkout         
       
       - add_ssh_keys:
-          fingerprints: ["9b:01:f0:ad:d7:c6:41:10:20:9c:79:24:de:89:25:13"] 
+          fingerprints: ["c8:c2:cb:51:63:78:db:28:a1:d7:19:90:29:73:cf:2f"] 
                  
       - attach_workspace:
           at: ~/
@@ -496,18 +496,18 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]               
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]               
           filters:
             branches:
               # only: [circleci-project-setup]
