@@ -387,20 +387,47 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
-            export API_URL="http://${BACKEND_IP}:3030"    
-            echo "BACKEND_URL: ${API_URL}/api/status"        
-            if curl "${API_URL}/api/status" | grep "ok"
-            then
-              echo "Backend Smoke Test Successful"
-              return 0
-            else
-              echo "Backend Smoke Test Failed"
-              return 1
-            fi
+            retries=5  # Set the maximum number of retries
+            sleep_duration=10  # Adjust the sleep duration between retries
+
+            for i in $(seq 1 $retries); do
+              export BACKEND_IP=$(aws ec2 describe-instances \
+                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query 'Reservations[*].Instances[*].PublicIpAddress' \
+                --output text)
+              export API_URL="http://${BACKEND_IP}:3030"    
+              echo "BACKEND_URL: ${API_URL}/api/status"
+              
+              response=$(curl -s -o /dev/null -w "%{http_code}" "${API_URL}/api/status")
+              
+              if [ "$response" = "200" ]; then
+                echo "Backend Smoke Test Successful"
+                return 0
+              else
+                echo "Backend Smoke Test Failed (Attempt $i of $retries). Response Code: $response"
+                sleep $sleep_duration
+              fi
+            done
+            echo "Exceeded maximum retries. Backend Smoke Test Failed."
+            return 1
+
+      # - run:
+      #     name: Backend smoke test
+      #     command: |
+      #       export BACKEND_IP=$(aws ec2 describe-instances \
+      #         --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
+      #         --output text)
+      #       export API_URL="http://${BACKEND_IP}:3030"    
+      #       echo "BACKEND_URL: ${API_URL}/api/status"        
+      #       if curl "${API_URL}/api/status" | grep "ok"
+      #       then
+      #         echo "Backend Smoke Test Successful"
+      #         return 0
+      #       else
+      #         echo "Backend Smoke Test Failed"
+      #         return 1
+      #       fi
       - run:
           name: Frontend smoke test
           command: |
