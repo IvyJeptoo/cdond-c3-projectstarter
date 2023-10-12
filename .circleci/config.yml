@@ -358,34 +358,19 @@ jobs:
             apk add --update tar gzip aws-cli ansible nodejs npm curl
       
       - run:
-          name: package backend
+          name: deploy backend
           no_output_timeout: 25m
           command: |
             cd backend
             npm install
             npm run build
-            tar -czf artifact.tar.gz dist/* package*
             cd ..
-            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
-
-            # cd ..
-            # tar -C backend -czf artifact.tar.gz .
-            # mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
-            # mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
-            # cd .circleci/ansible
-            # echo "Contents of the inventory.txt file is ------$(cat inventory.txt)"
-            # ansible-playbook -i inventory.txt deploy-backend.yml -vvv
-
-      - run:
-          name: Deploy backend
-          command: |
-            export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
-            export TYPEORM_MIGRATIONS=./migrations/*.ts
-
+            tar -C backend -czf artifact.tar.gz .
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
             cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            echo "Contents of the inventory.txt file is ------$(cat inventory.txt)"
+            ansible-playbook -i inventory.txt deploy-backend.yml -vvv
       
       - destroy-environment
       - revert-migrations
